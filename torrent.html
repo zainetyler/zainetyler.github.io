@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>MikroTik Torrent Block Generator</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f7f7f7;
+      margin: 0;
+      padding: 2rem;
+    }
+    .container {
+      max-width: 800px;
+      margin: auto;
+      background: #fff;
+      padding: 2rem;
+      border-radius: 10px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    h1 {
+      text-align: center;
+      color: #333;
+    }
+    button {
+      padding: 10px 20px;
+      font-size: 1rem;
+      margin-top: 1rem;
+      background-color: #3498db;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    button.copy {
+      background-color: #2ecc71;
+      margin-left: 1rem;
+    }
+    pre {
+      background: #2d2d2d;
+      color: #f1f1f1;
+      padding: 1rem;
+      border-radius: 8px;
+      margin-top: 1.5rem;
+      overflow-x: auto;
+      white-space: pre-wrap;
+    }
+    .copied {
+      color: green;
+      font-weight: bold;
+      margin-left: 1rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>MikroTik Torrent Block Generator</h1>
+
+    <button onclick="generateScript()">Generate Script</button>
+    <button class="copy" onclick="copyScript()">Copy to Clipboard</button>
+    <span id="copyStatus" class="copied"></span>
+
+    <pre id="output"></pre>
+  </div>
+
+  <script>
+    function generateScript() {
+      const rules = `
+# Block common BitTorrent ports
+/ip firewall filter
+add chain=forward protocol=tcp dst-port=6881-6889 action=drop comment="Block BitTorrent TCP"
+add chain=forward protocol=udp dst-port=6881-6889 action=drop comment="Block BitTorrent UDP"
+
+# Block known BitTorrent L7 patterns
+/ip firewall layer7-protocol
+add name=bittorrent-exp regexp="^(\\x13bittorrent protocol|azver|get_peers|announce_peer|find_node|BitTorrent|peer_id=|-UT|torrent|announce|info_hash)"
+
+# Drop based on L7 pattern
+/ip firewall filter
+add chain=forward layer7-protocol=bittorrent-exp action=drop comment="Drop BitTorrent L7"
+
+# Optional: drop connections to known torrent trackers (IP or DNS patterns)
+/ip firewall address-list
+add list=blocked-torrent dst-address=104.27.175.11 comment="example tracker ip"
+add list=blocked-torrent dst-address=104.27.174.11 comment="example tracker ip"
+
+/ip firewall filter
+add chain=forward dst-address-list=blocked-torrent action=drop comment="Drop known tracker IPs"
+      `.trim();
+
+      document.getElementById("output").textContent = rules;
+      document.getElementById("copyStatus").textContent = "";
+    }
+
+    function copyScript() {
+      const script = document.getElementById("output").textContent;
+      navigator.clipboard.writeText(script).then(() => {
+        document.getElementById("copyStatus").textContent = "Copied!";
+      }).catch(() => {
+        document.getElementById("copyStatus").textContent = "Copy failed.";
+      });
+    }
+  </script>
+</body>
+</html>

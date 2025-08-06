@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>MikroTik Hotspot Config Generator</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #f0f2f5;
+      margin: 0;
+      padding: 2rem;
+      color: #333;
+    }
+
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+      background: white;
+      padding: 2rem;
+      border-radius: 10px;
+      box-shadow: 0 0 20px rgba(0, 0, 0, 0.05);
+    }
+
+    h1 {
+      text-align: center;
+      color: #2c3e50;
+    }
+
+    label {
+      display: block;
+      margin: 1rem 0 0.3rem;
+      font-weight: bold;
+    }
+
+    input {
+      width: 100%;
+      padding: 0.5rem;
+      font-size: 1rem;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+
+    .buttons {
+      display: flex;
+      gap: 1rem;
+      margin-top: 1.5rem;
+    }
+
+    button {
+      padding: 0.7rem 2rem;
+      background-color: #3498db;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      font-size: 1rem;
+      cursor: pointer;
+    }
+
+    button.copy {
+      background-color: #27ae60;
+    }
+
+    pre {
+      background: #2d2d2d;
+      color: #f8f8f2;
+      padding: 1rem;
+      border-radius: 8px;
+      margin-top: 2rem;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    .copied {
+      color: green;
+      margin-left: 1rem;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>MikroTik Hotspot Config Generator</h1>
+
+    <label for="wanInterface">WAN Interface</label>
+    <input type="text" id="wanInterface" value="ether1" />
+
+    <label for="lanInterface">LAN/Hotspot Interface</label>
+    <input type="text" id="lanInterface" value="ether2" />
+
+    <label for="gatewayIP">Gateway IP</label>
+    <input type="text" id="gatewayIP" value="10.0.0.1" />
+
+    <label for="subnet">Subnet Mask (CIDR)</label>
+    <input type="text" id="subnet" value="24" />
+
+    <label for="dhcpRange">DHCP Pool Range</label>
+    <input type="text" id="dhcpRange" value="10.0.0.10-10.0.0.254" />
+
+    <label for="dnsServers">DNS Servers (comma-separated)</label>
+    <input type="text" id="dnsServers" value="8.8.8.8,1.1.1.1" />
+
+    <div class="buttons">
+      <button onclick="generateScript()">Generate Script</button>
+      <button class="copy" onclick="copyToClipboard()">Copy to Clipboard</button>
+      <span id="copyStatus" class="copied"></span>
+    </div>
+
+    <pre id="output"></pre>
+  </div>
+
+  <script>
+    function generateScript() {
+      const wan = document.getElementById("wanInterface").value;
+      const lan = document.getElementById("lanInterface").value;
+      const ip = document.getElementById("gatewayIP").value;
+      const subnet = document.getElementById("subnet").value;
+      const dhcp = document.getElementById("dhcpRange").value;
+      const dns = document.getElementById("dnsServers").value;
+
+      const network = ip.substring(0, ip.lastIndexOf(".")) + ".0";
+
+      const script = `
+# Rename interfaces
+/interface ethernet
+set [find default-name=${wan}] name=etherWAN
+set [find default-name=${lan}] name=etherHOTSPOT
+
+# Assign IP address
+/ip address
+add address=${ip}/${subnet} interface=etherHOTSPOT network=${network}
+
+/ip dns
+set servers=${dns} allow-remote-requests=yes
+
+/ip dns static
+add name=hotspot.local address=${ip}
+
+/ip firewall nat
+add chain=srcnat out-interface=etherWAN action=masquerade
+
+/ip pool
+add name=hotspot-pool ranges=${dhcp}
+
+/ip dhcp-server
+add name=dhcp-hotspot interface=etherHOTSPOT lease-time=1h address-pool=hotspot-pool disabled=no
+
+/ip dhcp-server network
+add address=${network}/${subnet} gateway=${ip} dns-server=${ip}
+
+/ip hotspot profile
+add name=hsprof1 hotspot-address=${ip} dns-name=${ip} html-directory=hotspot
+
+/ip hotspot
+add name=hotspot1 interface=etherHOTSPOT address-pool=hotspot-pool profile=hsprof1 disabled=no
+
+/ip hotspot user
+add name=test password=test profile=default
+
+/ip dhcp-server enable dhcp-hotspot
+/ip hotspot enable hotspot1
+      `.trim();
+
+      document.getElementById("output").textContent = script;
+      document.getElementById("copyStatus").textContent = "";
+    }
+
+    function copyToClipboard() {
+      const output = document.getElementById("output").textContent;
+      navigator.clipboard.writeText(output).then(() => {
+        document.getElementById("copyStatus").textContent = "Copied!";
+      }).catch(() => {
+        document.getElementById("copyStatus").textContent = "Copy failed.";
+      });
+    }
+  </script>
+</body>
+</html>

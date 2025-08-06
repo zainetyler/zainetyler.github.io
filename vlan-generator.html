@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>MikroTik VLAN Generator</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f4f4f4;
+      padding: 40px;
+    }
+
+    h2 {
+      text-align: center;
+      color: #333;
+    }
+
+    .container {
+      max-width: 600px;
+      margin: auto;
+      background: #fff;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+    }
+
+    label {
+      font-weight: bold;
+      margin-top: 10px;
+      display: block;
+    }
+
+    input, button, textarea {
+      width: 100%;
+      padding: 10px;
+      margin-top: 5px;
+      margin-bottom: 15px;
+      box-sizing: border-box;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+
+    textarea {
+      height: 300px;
+      font-family: monospace;
+      background-color: #f9f9f9;
+    }
+
+    button {
+      cursor: pointer;
+      font-weight: bold;
+    }
+
+    button.copy {
+      background-color: #28a745;
+      color: white;
+      border: none;
+    }
+
+    button.generate {
+      background-color: #007bff;
+      color: white;
+      border: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>MikroTik VLAN Generator</h2>
+
+    <label for="vlanID">VLAN ID:</label>
+    <input type="number" id="vlanID" value="10" />
+
+    <label for="vlanName">VLAN Interface Name:</label>
+    <input type="text" id="vlanName" value="vlan10" />
+
+    <label for="vlanInterface">VLAN Interface (ether/bridge):</label>
+    <input type="text" id="vlanInterface" value="bridge-HS" />
+
+    <label for="vlanIP">VLAN IP Address:</label>
+    <input type="text" id="vlanIP" value="10.0.1.1/24" />
+
+    <label for="poolStart">DHCP Range Start:</label>
+    <input type="text" id="poolStart" value="10.0.1.100" />
+
+    <label for="poolEnd">DHCP Range End:</label>
+    <input type="text" id="poolEnd" value="10.0.1.200" />
+
+    <button class="generate" onclick="generateScript()"> Generate MikroTik Script</button>
+
+    <label for="output">Generated Script:</label>
+    <textarea id="output" readonly></textarea>
+
+    <button class="copy" onclick="copyText()"> Copy to Clipboard</button>
+  </div>
+
+  <script>
+    function generateScript() {
+      const vlanID = document.getElementById("vlanID").value;
+      const vlanName = document.getElementById("vlanName").value;
+      const vlanInterface = document.getElementById("vlanInterface").value;
+      const vlanIP = document.getElementById("vlanIP").value;
+      const poolStart = document.getElementById("poolStart").value;
+      const poolEnd = document.getElementById("poolEnd").value;
+      const vlanGateway = vlanIP.split('/')[0];
+
+      const script = `
+/interface vlan
+add name=${vlanName} vlan-id=${vlanID} interface=${vlanInterface}
+
+/ip address
+add address=${vlanIP} interface=${vlanName}
+
+/ip pool
+add name="${vlanName}-pool" ranges=${poolStart}-${poolEnd}
+
+/ip dhcp-server
+add name="${vlanName}-dhcp" interface=${vlanName} address-pool="${vlanName}-pool" disabled=no
+
+/ip dhcp-server network
+add address=${vlanGateway}/24 gateway=${vlanGateway} dns-server=8.8.8.8
+
+/ip firewall filter
+add chain=forward action=accept src-address=${vlanGateway}/24 dst-address=10.0.0.0/16 comment="Allow VLAN to access LAN"
+add chain=forward action=accept src-address=10.0.0.0/16 dst-address=${vlanGateway}/24 comment="Allow LAN to access VLAN"
+      `.trim();
+
+      document.getElementById("output").value = script;
+    }
+
+    function copyText() {
+      const textarea = document.getElementById("output");
+      textarea.select();
+      document.execCommand("copy");
+      alert(" Script copied to clipboard!");
+    }
+  </script>
+</body>
+</html>

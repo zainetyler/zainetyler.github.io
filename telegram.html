@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>MikroTik Telegram Script Generator</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    :root {
+      --primary: #3b82f6;
+      --background: #f1f5f9;
+      --foreground: #1e293b;
+      --accent: #facc15;
+      --radius: 12px;
+    }
+
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background-color: var(--background);
+      color: var(--foreground);
+      display: flex;
+      justify-content: center;
+      padding: 40px 20px;
+    }
+
+    .container {
+      max-width: 600px;
+      width: 100%;
+      background: #fff;
+      padding: 30px;
+      border-radius: var(--radius);
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+    }
+
+    h1 {
+      margin-bottom: 20px;
+      font-size: 24px;
+      text-align: center;
+      color: var(--primary);
+    }
+
+    label {
+      display: block;
+      margin-top: 15px;
+      font-weight: 600;
+    }
+
+    input, textarea {
+      width: 100%;
+      padding: 10px;
+      margin-top: 5px;
+      border: 1px solid #ccc;
+      border-radius: var(--radius);
+      font-size: 16px;
+      transition: border 0.3s;
+    }
+
+    input:focus, textarea:focus {
+      border-color: var(--primary);
+      outline: none;
+    }
+
+    button {
+      margin-top: 25px;
+      width: 100%;
+      padding: 12px;
+      font-size: 16px;
+      background: var(--primary);
+      color: #fff;
+      border: none;
+      border-radius: var(--radius);
+      cursor: pointer;
+      transition: background 0.3s ease;
+    }
+
+    button:hover {
+      background: #2563eb;
+    }
+
+    pre {
+      margin-top: 25px;
+      background: #f3f4f6;
+      padding: 20px;
+      border-radius: var(--radius);
+      font-family: monospace;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+      border-left: 4px solid var(--primary);
+    }
+
+    footer {
+      text-align: center;
+      margin-top: 30px;
+      font-size: 13px;
+      color: #888;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <h1>🔧 MikroTik Telegram Script Generator</h1>
+
+    <label for="token">🤖 Telegram Bot Token</label>
+    <input type="text" id="token" placeholder="123456:ABC-DEF1234ghIkl-zyx57W2v1u123ew11">
+
+    <label for="chatid">💬 Telegram Chat ID</label>
+    <input type="text" id="chatid" placeholder="e.g. 123456789">
+
+    <label for="message">✉️ Message to Send</label>
+    <textarea id="message" rows="3" placeholder="MikroTik Alert: WAN is down!"></textarea>
+
+    <button onclick="generateScript()">Generate Script</button>
+
+    <pre id="output" placeholder="Script will appear here..."></pre>
+  </div>
+
+  <script>
+    function generateScript() {
+      const token = document.getElementById('token').value.trim();
+      const chatId = document.getElementById('chatid').value.trim();
+      const message = document.getElementById('message').value.trim();
+
+      if (!token || !chatId || !message) {
+        alert("⚠️ Please fill in all fields.");
+        return;
+      }
+
+      const script = `:local botToken "${token}"
+:local chatId "${chatId}"
+:local message "${message}"
+
+/tool fetch url=("https://api.telegram.org/bot" . \$botToken . "/sendMessage?chat_id=" . \$chatId . "&text=" . [:pick \$message 0 400]) keep-result=no`;
+
+      document.getElementById('output').textContent = script;
+    }
+  </script>
+
+</body>
+</html>

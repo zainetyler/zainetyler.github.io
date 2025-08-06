@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>MikroTik Hotspot User Generator</title>
+  <style>
+    body {
+      font-family: "Segoe UI", sans-serif;
+      background: #f3f6f9;
+      margin: 0;
+      padding: 2rem;
+      color: #333;
+    }
+
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      background: #fff;
+      padding: 2rem;
+      border-radius: 10px;
+      box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+    }
+
+    h1 {
+      text-align: center;
+      color: #2c3e50;
+    }
+
+    label {
+      font-weight: bold;
+      display: block;
+      margin-top: 1rem;
+    }
+
+    input[type="number"],
+    select {
+      width: 100%;
+      padding: 0.5rem;
+      font-size: 1rem;
+      margin-top: 0.3rem;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+
+    .buttons {
+      display: flex;
+      gap: 1rem;
+      margin-top: 1.5rem;
+    }
+
+    button {
+      padding: 0.7rem 2rem;
+      background-color: #3498db;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      font-size: 1rem;
+      cursor: pointer;
+    }
+
+    button.copy {
+      background-color: #27ae60;
+    }
+
+    pre {
+      background: #2d2d2d;
+      color: #f8f8f2;
+      padding: 1rem;
+      border-radius: 8px;
+      margin-top: 2rem;
+      white-space: pre-wrap;
+      word-break: break-word;
+      font-family: monospace;
+    }
+
+    .copied {
+      margin-left: 1rem;
+      color: green;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>MikroTik Hotspot User Generator (VC Prefix, No Password)</h1>
+
+    <label for="userCount">Number of Users (1–15)</label>
+    <input type="number" id="userCount" min="1" max="15" value="5">
+
+    <label for="userProfile">User Profile</label>
+    <select id="userProfile">
+      <option value="default">default</option>
+      <option value="1h">1h</option>
+      <option value="2mbps">2mbps</option>
+      <option value="guest">guest</option>
+    </select>
+
+    <div class="buttons">
+      <button onclick="generateUsers()">Generate Users</button>
+      <button class="copy" onclick="copyScript()">Copy to Clipboard</button>
+      <span id="copyStatus" class="copied"></span>
+    </div>
+
+    <pre id="output"></pre>
+  </div>
+
+  <script>
+    function generateRandomCode(length) {
+      const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+      let result = '';
+      for (let i = 0; i < length; i++) {
+        result += chars.charAt(Math.floor(Math.random() * chars.length));
+      }
+      return result;
+    }
+
+    function generateUsers() {
+      const count = parseInt(document.getElementById("userCount").value);
+      const profile = document.getElementById("userProfile").value;
+      const output = document.getElementById("output");
+      const copyStatus = document.getElementById("copyStatus");
+
+      if (isNaN(count) || count < 1 || count > 15) {
+        output.textContent = "# Please enter a number between 1 and 15.";
+        return;
+      }
+
+      let script = `# MikroTik Hotspot Users (VC-prefixed, No Password, Profile: ${profile})\n`;
+      for (let i = 1; i <= count; i++) {
+        const username = 'VC' + generateRandomCode(6);
+        script += `/ip hotspot user add name=${username} password="" profile=${profile}\n`;
+      }
+
+      output.textContent = script;
+      copyStatus.textContent = "";
+    }
+
+    function copyScript() {
+      const script = document.getElementById("output").textContent;
+      navigator.clipboard.writeText(script).then(() => {
+        document.getElementById("copyStatus").textContent = "Copied!";
+      }).catch(() => {
+        document.getElementById("copyStatus").textContent = "Copy failed.";
+      });
+    }
+  </script>
+</body>
+</html>
+

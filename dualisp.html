@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>MikroTik Dual ISP Failover Generator</title>
+  <style>
+    body {
+      font-family: "Segoe UI", sans-serif;
+      background: #f4f7fa;
+      margin: 0;
+      padding: 2rem;
+      color: #333;
+    }
+
+    .container {
+      max-width: 800px;
+      margin: auto;
+      background: #fff;
+      padding: 2rem;
+      border-radius: 12px;
+      box-shadow: 0 0 20px rgba(0,0,0,0.05);
+    }
+
+    h1 {
+      text-align: center;
+      color: #2c3e50;
+    }
+
+    label {
+      font-weight: 600;
+      display: block;
+      margin-top: 1.2rem;
+    }
+
+    input {
+      width: 100%;
+      padding: 0.5rem;
+      font-size: 1rem;
+      margin-top: 0.3rem;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+
+    .buttons {
+      display: flex;
+      gap: 1rem;
+      margin-top: 1.5rem;
+    }
+
+    button {
+      padding: 0.7rem 2rem;
+      background-color: #3498db;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      font-size: 1rem;
+      cursor: pointer;
+    }
+
+    button.copy {
+      background-color: #2ecc71;
+    }
+
+    pre {
+      background: #2d2d2d;
+      color: #f1f1f1;
+      padding: 1rem;
+      border-radius: 8px;
+      margin-top: 2rem;
+      white-space: pre-wrap;
+      word-break: break-word;
+      font-family: monospace;
+    }
+
+    .copied {
+      margin-left: 1rem;
+      color: green;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>MikroTik Dual ISP Failover Generator</h1>
+
+    <label for="isp1">ISP1 Gateway IP</label>
+    <input type="text" id="isp1" value="192.168.88.1">
+
+    <label for="isp1ip">ISP1 Router IP</label>
+    <input type="text" id="isp1ip" value="192.168.88.2/24">
+
+    <label for="isp2">ISP2 Gateway IP</label>
+    <input type="text" id="isp2" value="192.168.89.1">
+
+    <label for="isp2ip">ISP2 Router IP</label>
+    <input type="text" id="isp2ip" value="192.168.89.2/24">
+
+    <div class="buttons">
+      <button onclick="generateScript()">Generate Script</button>
+      <button class="copy" onclick="copyScript()">Copy to Clipboard</button>
+      <span id="copyStatus" class="copied"></span>
+    </div>
+
+    <pre id="output"></pre>
+  </div>
+
+  <script>
+    function generateScript() {
+      const isp1 = document.getElementById("isp1").value;
+      const isp2 = document.getElementById("isp2").value;
+      const isp1ip = document.getElementById("isp1ip").value;
+      const isp2ip = document.getElementById("isp2ip").value;
+
+      const script = `
+# MikroTik Dual ISP Failover Configuration
+
+/interface ethernet
+set [find default-name=ether1] name=ISP1
+set [find default-name=ether2] name=ISP2
+
+/ip address
+add address=${isp1ip} interface=ISP1
+add address=${isp2ip} interface=ISP2
+
+/ip route
+add gateway=${isp1} distance=1 check-gateway=ping comment="Primary ISP"
+add gateway=${isp2} distance=2 comment="Backup ISP"
+
+/ip firewall nat
+add chain=srcnat out-interface=ISP1 action=masquerade
+add chain=srcnat out-interface=ISP2 action=masquerade
+      `.trim();
+
+      document.getElementById("output").textContent = script;
+      document.getElementById("copyStatus").textContent = "";
+    }
+
+    function copyScript() {
+      const text = document.getElementById("output").textContent;
+      navigator.clipboard.writeText(text).then(() => {
+        document.getElementById("copyStatus").textContent = "Copied!";
+      }).catch(() => {
+        document.getElementById("copyStatus").textContent = "Copy failed.";
+      });
+    }
+  </script>
+</body>
+</html>
