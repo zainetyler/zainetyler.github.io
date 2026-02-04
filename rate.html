@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MikroTik Hotspot Rate Scheduler Generator</title>
+    <style>
+        body { font-family: sans-serif; line-height: 1.6; max-width: 600px; margin: 20px auto; padding: 20px; background-color: #f4f4f9; }
+        .card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        h2 { color: #005faf; margin-top: 0; }
+        label { display: block; margin-top: 10px; font-weight: bold; }
+        input { width: 100%; padding: 8px; margin-top: 5px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
+        .output { background: #2d2d2d; color: #7cfc00; padding: 15px; border-radius: 4px; margin-top: 20px; white-space: pre-wrap; font-family: monospace; font-size: 0.9em; overflow-x: auto; }
+        button { background: #005faf; color: white; border: none; padding: 10px 15px; border-radius: 4px; cursor: pointer; margin-top: 15px; width: 100%; font-size: 16px; }
+        button:hover { background: #004a87; }
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <h2>Hotspot Rate Scheduler</h2>
+    
+    <label>Profile Name:</label>
+    <input type="text" id="profName" value="renz">
+
+    <label>Day Rate (e.g., 5M):</label>
+    <input type="text" id="dayRate" value="5M">
+
+    <label>Night Rate (e.g., 3M):</label>
+    <input type="text" id="nightRate" value="3M">
+
+    <button onclick="generateScript()">Generate Script</button>
+
+    <div id="result" class="output">Click generate to see commands...</div>
+</div>
+
+<script>
+function generateScript() {
+    const name = document.getElementById('profName').value;
+    const day = document.getElementById('dayRate').value;
+    const night = document.getElementById('nightRate').value;
+
+    const script = 
+`# --- DAY SCHEDULE (8:00 AM) ---
+/system scheduler remove [find name="Renz_Day_Mode"]
+/system scheduler add name="Renz_Day_Mode" start-time=08:00:00 interval=1d on-event="/ip hotspot user profile set [find name=\\"${name}\\"] rate-limit=${day}/${day}; /ip hotspot active remove [find user-profile=\\"${name}\\"]"
+
+# --- NIGHT SCHEDULE (8:00 PM) ---
+/system scheduler remove [find name="Renz_Night_Mode"]
+/system scheduler add name="Renz_Night_Mode" start-time=20:00:00 interval=1d on-event="/ip hotspot user profile set [find name=\\"${name}\\"] rate-limit=${night}/${night}; /ip hotspot active remove [find user-profile=\\"${name}\\"]"`;
+
+    document.getElementById('result').innerText = script;
+}
+</script>
+
+</body>
+</html>
