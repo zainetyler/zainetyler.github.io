@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reconnect User Vlan Generator</title>
+    <style>
+        body { font-family: sans-serif; background: #f4f4f9; padding: 20px; }
+        .card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); max-width: 600px; margin: auto; }
+        h2 { color: #1877F2; border-bottom: 2px solid #eee; padding-bottom: 10px; }
+        label { display: block; margin: 15px 0 5px; font-weight: bold; }
+        input, select, textarea { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; }
+        .output-box { background: #2d2d2d; color: #61dafb; padding: 15px; border-radius: 6px; margin-top: 20px; white-space: pre-wrap; font-family: monospace; font-size: 0.9em; }
+        button { background: #1877F2; color: white; border: none; padding: 12px 20px; border-radius: 6px; cursor: pointer; margin-top: 15px; width: 100%; font-size: 1em; }
+        button:hover { background: #155cb0; }
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <h2>Reconnect User Vlan Generator</h2>
+    
+    <label>Select Task Type:</label>
+    <select id="taskType" onchange="updateForm()">
+        <option value="hotspot">Reconnect All Hotspot Users</option>
+        <option value="vlan">Restart Specific VLAN</option>
+    </select>
+
+    <div id="vlanNameContainer" style="display:none;">
+        <label>VLAN Name (as seen in Interface list):</label>
+        <input type="text" id="vlanName" placeholder="e.g., vlan1">
+    </div>
+
+    <label>Schedule Name:</label>
+    <input type="text" id="schedName" value="Daily_Refresh">
+
+    <label>Interval (e.g., 1d, 06:00:00):</label>
+    <input type="text" id="interval" value="1d">
+
+    <button onclick="generateScript()">Generate Script</button>
+
+    <div class="output-box" id="output">/system scheduler add name=...</div>
+</div>
+
+<script>
+    function updateForm() {
+        const type = document.getElementById('taskType').value;
+        document.getElementById('vlanNameContainer').style.display = (type === 'vlan') ? 'block' : 'none';
+    }
+
+    function generateScript() {
+        const type = document.getElementById('taskType').value;
+        const name = document.getElementById('schedName').value;
+        const interval = document.getElementById('interval').value;
+        const vlan = document.getElementById('vlanName').value;
+        
+        let eventCode = "";
+        if(type === 'hotspot') {
+            eventCode = "/ip hotspot active remove [find]";
+        } else {
+            eventCode = "/interface vlan disable " + vlan + "; :delay 2s; /interface vlan enable " + vlan;
+        }
+
+        const fullScript = `/system scheduler\nadd name="${name}" interval=${interval} start-time=03:00:00 on-event="${eventCode}"`;
+        
+        document.getElementById('output').textContent = fullScript;
+    }
+</script>
+
+</body>
+</html>
