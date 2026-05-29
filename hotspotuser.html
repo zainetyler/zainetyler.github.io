@@ -1,149 +1,509 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>MikroTik Hotspot User Generator</title>
-  <style>
-    body {
-      font-family: "Segoe UI", sans-serif;
-      background: #f3f6f9;
-      margin: 0;
-      padding: 2rem;
-      color: #333;
-    }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MikroTik Script & Voucher Generator - tripler r</title>
+    <style>
+        :root {
+            --primary-color: #2e6699;
+            --secondary-color: #f4f4f4;
+            --text-color: #333;
+            --border-color: #ccc;
+        }
 
-    .container {
-      max-width: 800px;
-      margin: 0 auto;
-      background: #fff;
-      padding: 2rem;
-      border-radius: 10px;
-      box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
-    }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--secondary-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
+        }
 
-    h1 {
-      text-align: center;
-      color: #2c3e50;
-    }
+        .container {
+            max-width: 950px;
+            margin: 0 auto;
+            background: #fff;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
 
-    label {
-      font-weight: bold;
-      display: block;
-      margin-top: 1rem;
-    }
+        h2 {
+            color: var(--primary-color);
+            border-bottom: 2px solid var(--primary-color);
+            padding-bottom: 10px;
+            margin-top: 0;
+        }
 
-    input[type="number"],
-    select {
-      width: 100%;
-      padding: 0.5rem;
-      font-size: 1rem;
-      margin-top: 0.3rem;
-      border: 1px solid #ccc;
-      border-radius: 5px;
-    }
+        .config-panel {
+            background-color: #fdfdfd;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
 
-    .buttons {
-      display: flex;
-      gap: 1rem;
-      margin-top: 1.5rem;
-    }
+        .config-title {
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #4a5568;
+            font-size: 15px;
+        }
 
-    button {
-      padding: 0.7rem 2rem;
-      background-color: #3498db;
-      color: white;
-      border: none;
-      border-radius: 5px;
-      font-size: 1rem;
-      cursor: pointer;
-    }
+        .preset-row-setup {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr) auto;
+            gap: 10px;
+            align-items: end;
+            margin-bottom: 10px;
+        }
 
-    button.copy {
-      background-color: #27ae60;
-    }
+        .preset-setup-group {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
 
-    pre {
-      background: #2d2d2d;
-      color: #f8f8f2;
-      padding: 1rem;
-      border-radius: 8px;
-      margin-top: 2rem;
-      white-space: pre-wrap;
-      word-break: break-word;
-      font-family: monospace;
-    }
+        .preset-setup-group label {
+            font-size: 11px;
+            color: #718096;
+            margin: 0;
+        }
 
-    .copied {
-      margin-left: 1rem;
-      color: green;
-      font-weight: bold;
-    }
-  </style>
+        .preset-setup-group input {
+            padding: 6px;
+            font-size: 13px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+        }
+
+        .btn-save-presets {
+            background-color: #28a745;
+            color: white;
+            padding: 6px 12px;
+            font-size: 13px;
+            height: 31px;
+            cursor: pointer;
+            border-radius: 4px;
+            border: none;
+            font-weight: bold;
+        }
+
+        .btn-save-presets:hover {
+            background-color: #1e7e34;
+        }
+
+        .preset-container {
+            margin-bottom: 20px;
+            background: #edf2f7;
+            padding: 12px;
+            border-radius: 6px;
+        }
+
+        .preset-title {
+            font-weight: bold;
+            margin-bottom: 8px;
+            font-size: 14px;
+            color: #4a5568;
+        }
+
+        .preset-buttons {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .btn-preset {
+            background-color: #fff;
+            color: #495057;
+            padding: 8px 16px;
+            font-size: 14px;
+            border: 1px solid #ced4da;
+            flex: none;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+
+        .btn-preset:hover {
+            background-color: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+        }
+
+        .form-row {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            flex: 1;
+        }
+
+        label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+
+        input[type="number"], input[type="text"] {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            box-sizing: border-box;
+            font-size: 16px;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+        }
+
+        button {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 4px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .btn-generate {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .btn-generate:hover {
+            background-color: #204d75;
+        }
+
+        .btn-print {
+            background-color: #ffc107;
+            color: #212529;
+        }
+
+        .btn-print:hover {
+            background-color: #e0a800;
+        }
+
+        /* Terminal Console Styling */
+        .terminal-box {
+            background-color: #1e1e1e;
+            color: #f1f1f1;
+            font-family: 'Courier New', Courier, monospace;
+            padding: 15px;
+            border-radius: 6px;
+            box-shadow: inset 0 0 10px #000;
+            max-height: 250px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            margin-bottom: 30px;
+            border: 1px solid #333;
+        }
+
+        .terminal-header {
+            font-weight: bold;
+            color: #00ff00;
+            margin-bottom: 5px;
+        }
+
+        /* Print Layout */
+        #print-area {
+            display: none;
+        }
+
+        #preview-vouchers-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 12px;
+            margin-top: 15px;
+        }
+
+        .voucher-card {
+            border: 2px dashed #444;
+            padding: 12px;
+            text-align: center;
+            background: #fff;
+            border-radius: 4px;
+        }
+
+        .voucher-title {
+            font-size: 14px;
+            font-weight: bold;
+            text-transform: uppercase;
+            color: var(--primary-color);
+            margin-bottom: 4px;
+            letter-spacing: 0.5px;
+        }
+
+        .voucher-code {
+            font-size: 18px;
+            font-weight: bold;
+            background: #f0f0f0;
+            padding: 4px;
+            margin: 6px 0;
+            border: 1px solid #ddd;
+            letter-spacing: 1px;
+        }
+
+        .voucher-footer {
+            font-size: 10px;
+            color: #666;
+            line-height: 1.2;
+        }
+
+        /* Print Formatting overrides */
+        @media print {
+            body * {
+                visibility: hidden;
+            }
+            #print-area, #print-area * {
+                visibility: visible;
+            }
+            #print-area {
+                display: grid !important;
+                grid-template-columns: repeat(4, 1fr);
+                gap: 8px;
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+            }
+            .voucher-card {
+                border: 2px dashed #000 !important;
+                page-break-inside: avoid;
+                background: #fff !important;
+            }
+            .voucher-code {
+                background: #fff !important;
+                border: 1px solid #000 !important;
+            }
+        }
+    </style>
 </head>
 <body>
-  <div class="container">
-    <h1>MikroTik Hotspot User Generator (VC Prefix, No Password)</h1>
 
-    <label for="userCount">Number of Users (1–15)</label>
-    <input type="number" id="userCount" min="1" max="15" value="5">
+<div class="container">
+    <h2>MikroTik Terminal Script Generator (tripler r)</h2>
+    
+    <div class="config-panel">
+        <div class="config-title">Modify Quick Presets Options (Autosaves to Browser):</div>
+        
+        <div class="preset-row-setup">
+            <div class="preset-setup-group">
+                <label>Preset 1 (Label / Time / Price)</label>
+                <input type="text" id="p1-label" value="₱5 (1 Hour)">
+            </div>
+            <div class="preset-setup-group">
+                <input type="text" id="p1-time" value="60m">
+            </div>
+            <div class="preset-setup-group">
+                <input type="number" id="p1-amount" value="5">
+            </div>
+        </div>
 
-    <label for="userProfile">User Profile</label>
-    <select id="userProfile">
-      <option value="default">default</option>
-      <option value="1h">1h</option>
-      <option value="2mbps">2mbps</option>
-      <option value="guest">guest</option>
-    </select>
+        <div class="preset-row-setup">
+            <div class="preset-setup-group">
+                <label>Preset 2 (Label / Time / Price)</label>
+                <input type="text" id="p2-label" value="₱10 (3 Hours)">
+            </div>
+            <div class="preset-setup-group">
+                <input type="text" id="p2-time" value="180m">
+            </div>
+            <div class="preset-setup-group">
+                <input type="number" id="p2-amount" value="10">
+            </div>
+        </div>
 
-    <div class="buttons">
-      <button onclick="generateUsers()">Generate Users</button>
-      <button class="copy" onclick="copyScript()">Copy to Clipboard</button>
-      <span id="copyStatus" class="copied"></span>
+        <div class="preset-row-setup">
+            <div class="preset-setup-group">
+                <label>Preset 3 (Label / Time / Price)</label>
+                <input type="text" id="p3-label" value="₱20 (24 Hours)">
+            </div>
+            <div class="preset-setup-group">
+                <input type="text" id="p3-time" value="1440m">
+            </div>
+            <div class="preset-setup-group">
+                <input type="number" id="p3-amount" value="20">
+            </div>
+        </div>
+
+        <div class="preset-row-setup">
+            <div class="preset-setup-group">
+                <label>Preset 4 (Label / Time / Price)</label>
+                <input type="text" id="p4-label" value="₱100 (7 Days)">
+            </div>
+            <div class="preset-setup-group">
+                <input type="text" id="p4-time" value="10080m">
+            </div>
+            <div class="preset-setup-group">
+                <input type="number" id="p4-amount" value="100">
+            </div>
+            <button class="btn-save-presets" onclick="saveAndApplyPresets()">Save & Permanently Apply</button>
+        </div>
+    </div>
+    
+    <div class="preset-container">
+        <div class="preset-title">Active Presets:</div>
+        <div class="preset-buttons" id="preset-buttons-container">
+            </div>
+    </div>
+    
+    <div class="form-row">
+        <div class="form-group">
+            <label for="voucher-count">Quantity:</label>
+            <input type="number" id="voucher-count" value="12" min="1" max="200">
+        </div>
+        <div class="form-group">
+            <label for="voucher-time">Time Limit / Duration:</label>
+            <input type="text" id="voucher-time" value="1440m">
+        </div>
+        <div class="form-group">
+            <label for="voucher-amount">Amount / Price (₱):</label>
+            <input type="number" id="voucher-amount" value="20" min="0">
+        </div>
     </div>
 
-    <pre id="output"></pre>
-  </div>
+    <div class="btn-group">
+        <button class="btn-generate" onclick="generateVouchers()">Generate New Batch</button>
+        <button class="btn-print" onclick="window.print()">Print Cutout Vouchers</button>
+    </div>
 
-  <script>
-    function generateRandomCode(length) {
-      const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-      let result = '';
-      for (let i = 0; i < length; i++) {
-        result += chars.charAt(Math.floor(Math.random() * chars.length));
-      }
-      return result;
+    <h3>RouterOS Terminal Code</h3>
+    <div class="terminal-header"># Copy and paste into WinBox Terminal:</div>
+    <div class="terminal-box" id="terminal-output"></div>
+
+    <h3>Voucher Preview (Screen Layout)</h3>
+    <div id="preview-vouchers-container"></div>
+</div>
+
+<div id="print-area"></div>
+
+<script>
+    const PREFIX = "VC";
+
+    // Load saved data from browser memory on startup
+    function loadSavedPresets() {
+        const savedData = localStorage.getItem('tripler_r_presets');
+        if (savedData) {
+            const presets = JSON.parse(savedData);
+            for (let i = 1; i <= 4; i++) {
+                if (presets[`p${i}`]) {
+                    document.getElementById(`p${i}-label`).value = presets[`p${i}`].label;
+                    document.getElementById(`p${i}-time`).value = presets[`p${i}`].time;
+                    document.getElementById(`p` + i + `-amount`).value = presets[`p${i}`].amount;
+                }
+            }
+        }
     }
 
-    function generateUsers() {
-      const count = parseInt(document.getElementById("userCount").value);
-      const profile = document.getElementById("userProfile").value;
-      const output = document.getElementById("output");
-      const copyStatus = document.getElementById("copyStatus");
+    // Save configurations into local browser storage & update button layout
+    function saveAndApplyPresets() {
+        const presetsToSave = {};
+        
+        for (let i = 1; i <= 4; i++) {
+            presetsToSave[`p${i}`] = {
+                label: document.getElementById(`p${i}-label`).value,
+                time: document.getElementById(`p${i}-time`).value,
+                amount: document.getElementById(`p${i}-amount`).value
+            };
+        }
 
-      if (isNaN(count) || count < 1 || count > 15) {
-        output.textContent = "# Please enter a number between 1 and 15.";
-        return;
-      }
-
-      let script = `# MikroTik Hotspot Users (VC-prefixed, No Password, Profile: ${profile})\n`;
-      for (let i = 1; i <= count; i++) {
-        const username = 'VC' + generateRandomCode(6);
-        script += `/ip hotspot user add name=${username} password="" profile=${profile}\n`;
-      }
-
-      output.textContent = script;
-      copyStatus.textContent = "";
+        // Stores configuration as a string inside browser memory database
+        localStorage.setItem('tripler_r_presets', JSON.stringify(presetsToSave));
+        
+        // Refresh the action buttons layout
+        renderPresetButtons();
+        alert("Configuration saved! Settings will remain even after refreshing.");
     }
 
-    function copyScript() {
-      const script = document.getElementById("output").textContent;
-      navigator.clipboard.writeText(script).then(() => {
-        document.getElementById("copyStatus").textContent = "Copied!";
-      }).catch(() => {
-        document.getElementById("copyStatus").textContent = "Copy failed.";
-      });
+    function renderPresetButtons() {
+        const container = document.getElementById('preset-buttons-container');
+        container.innerHTML = ''; 
+
+        for (let i = 1; i <= 4; i++) {
+            const label = document.getElementById(`p${i}-label`).value;
+            const time = document.getElementById(`p${i}-time`).value;
+            const amount = document.getElementById(`p${i}-amount`).value;
+
+            const btn = document.createElement('button');
+            btn.className = 'btn-preset';
+            btn.textContent = label;
+            btn.onclick = function() { applyPreset(time, amount); };
+            container.appendChild(btn);
+        }
     }
-  </script>
+
+    function applyPreset(time, amount) {
+        document.getElementById('voucher-time').value = time;
+        document.getElementById('voucher-amount').value = amount;
+        generateVouchers();
+    }
+
+    function generateNumericCode(length = 4) {
+        const numbers = '0123456789';
+        let result = '';
+        for (let i = 0; i < length; i++) {
+            result += numbers.charAt(Math.floor(Math.random() * numbers.length));
+        }
+        return result;
+    }
+
+    function generateVouchers() {
+        const count = parseInt(document.getElementById('voucher-count').value) || 12;
+        const timeInput = document.getElementById('voucher-time').value || "1440m";
+        const amount = document.getElementById('voucher-amount').value || "20";
+        const terminalOutput = document.getElementById('terminal-output');
+        const previewContainer = document.getElementById('preview-vouchers-container');
+        const printArea = document.getElementById('print-area');
+        
+        const dynamicComment = `${timeInput},${amount},0,tripler r`;
+
+        let scriptText = "/ip hotspot user\n";
+        previewContainer.innerHTML = '';
+        printArea.innerHTML = '';
+
+        for (let i = 0; i < count; i++) {
+            const pinCode = PREFIX + generateNumericCode(4);
+
+            scriptText += `add name="${pinCode}" profile="default" comment="${dynamicComment}"\n`;
+
+            const cardHTML = `
+                <div class="voucher-title">tripler r</div>
+                <div style="font-size: 10px; color:#444;">Voucher Code:</div>
+                <div class="voucher-code">${pinCode}</div>
+                <div class="voucher-footer">
+                    <strong>Price:</strong> ₱${amount}<br>
+                    <strong>Validity:</strong> ${timeInput}<br>
+                    <span style="font-size:8px; color:#888;">${dynamicComment}</span>
+                </div>
+            `;
+
+            const screenCard = document.createElement('div');
+            screenCard.className = 'voucher-card';
+            screenCard.innerHTML = cardHTML;
+            previewContainer.appendChild(screenCard);
+
+            const printCard = document.createElement('div');
+            printCard.className = 'voucher-card';
+            printCard.innerHTML = cardHTML;
+            printArea.appendChild(printCard);
+        }
+
+        terminalOutput.textContent = scriptText;
+    }
+
+    // Sequence on startup load
+    window.onload = function() {
+        loadSavedPresets();   // 1. Fetch saved memory fields
+        renderPresetButtons(); // 2. Build out preset grid elements
+        generateVouchers();    // 3. Populate default initial script lines
+    };
+</script>
+
 </body>
 </html>
-
